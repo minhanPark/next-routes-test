@@ -66,3 +66,39 @@ export const config = {
   matcher: ["/about/:path*", "/dashboard/:path*"],
 };
 ```
+
+- 미들웨어에서 NextResponse.next를 사용하면 설정 등을 추가한 뒤에 라우트로 보낼 수 있다.
+
+```ts
+if (request.nextUrl.pathname.startsWith("/api")) {
+  const newResponseHeaders = new Headers(request.headers);
+  newResponseHeaders.set("x-something", "hello world");
+
+  const response = NextResponse.next({
+    request: {
+      headers: newResponseHeaders,
+    },
+  });
+  response.cookies.set({
+    name: "x-hi",
+    value: "bye",
+    path: "/",
+  });
+  return response;
+}
+```
+
+이렇게 보내면 실제로 헤더에 쿠키를 받을 때는 아래처럼 받을 수 있음.
+
+```ts
+import { headers } from "next/headers";
+import { NextRequest, NextResponse } from "next/server";
+export async function POST(request: NextRequest) {
+  const httpHeaders = headers();
+  console.info("httpHeaders: ", httpHeaders.get("x-something"));
+  console.info("request.headers: ", request.headers.get("x-something"));
+  return NextResponse.json({ message: "/api/post" });
+}
+```
+
+둘다 같은 헤더에 쿠키를 확인할 수 있는 방법이다.

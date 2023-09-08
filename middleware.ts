@@ -10,8 +10,25 @@ export function middleware(request: NextRequest) {
   if (request.nextUrl.pathname.startsWith("/dashboard")) {
     return NextResponse.redirect(new URL("/", request.url));
   }
+
+  if (request.nextUrl.pathname.startsWith("/api")) {
+    const newResponseHeaders = new Headers(request.headers);
+    newResponseHeaders.set("x-something", "hello world");
+
+    const response = NextResponse.next({
+      request: {
+        headers: newResponseHeaders,
+      },
+    });
+    response.cookies.set({
+      name: "x-hi",
+      value: "bye",
+      path: "/",
+    });
+    return response;
+  }
 }
 
 export const config = {
-  matcher: ["/about/:path*", "/dashboard/:path*"],
+  matcher: ["/about/:path*", "/dashboard/:path*", "/api/:path*"],
 };
